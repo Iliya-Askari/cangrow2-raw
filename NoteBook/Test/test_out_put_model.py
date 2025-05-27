@@ -1,49 +1,37 @@
-import requests
-import json
+import openai
 
-url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=AIzaSyAr7cHMJjnBL7GxYXpaP1RYVaUSpuOCcsI"
+client = openai.OpenAI(
+    base_url="https://api.llm7.io/v1",
+    api_key="unused"
+)
 
-headers = {
-    "Content-Type": "application/json"
-}
+prompt = (
+    "سلام من یکسری کلمات کلیدی هست و احتمال مدل من کلمات غیر ضروری هم اورده "
+    "که از کسی هست رزومه‌اش این موارد رو کم داره\n\n"
+    "['frontend', 'backend', 'interfaces', 'appealing', 'seamless', 'experiences', 'users', 'visually', "
+    "'collaborate', 'create', 'ensuring', 'work', 'solutions', 'infrastructure', 'providing', 'server', "
+    "'databases', 'creating', 'aspects', 'application']\n\n"
+    "و من ازت می‌خوام یه نقشه راه به کاربر بدی که باید چی‌ها یاد بگیره و چه کارهایی باید انجام بده و اگر دیدی کلمه‌ای اضافه و بی‌مورد هست در نظر نگیر. "
+    "و باید با دقت بالا نقشه راه بدی. اگر هر زبان یا کتابخونه‌ای از اون زبان رو باید یاد بگیره بگو. در ضمن باید طبق استاندارد نقشه راه بدی و حتما انگلیسی باشه. "
+    " من بهت گقتم با دقت باشه این دقت حتما باید بر اساس اون کلمات مشخص باشه "
+    "و چون این پرامپت من با API وصل می‌کنم توضیحات اول و آخر رو نیاز ندارم و بهم توضیح نده، فقط نقشه راه به زبان انگلیسی بفرست. "
+    "منظورم اینه که توضیح ندی اینه که مثل این دستوراتی هستی که پاسخ به من می‌دی. من یک نرم‌افزار دارم و با API به تو وصل شدم و می‌خوام به محض اینکه پرامپت فرستادم "
+    "نقشه راه باشه و در اول و آخر هیچی نباشه و باید بدون فرمت خاصی باشه. باید فرمت txt باشه."
+    "در ضمن نمیخوام نقشه راه کوتتاه و مختصر باشه میخوام با بالاترین دقت و بهترین جزئیات نسب به اون کلمات باشه و هرچی بیشتر و کامل تر بهتر "
+    "خب در خط اخر فقط این جمله رو بنویس  به صورت اگلیسی این مسیر مسیر کلی و استاندارد میباشد و طبق مهارت های که باید یاد بگیرید باشه "
+)
 
-data = {
-    "contents": [
-        {
-            "parts": [
-                {
-                    "text": (
-                        "سلام من یکسری کلمات کلیدی هست و احتمال مدل من کلمات غیر ضروری هم اورده  "
-                        "که از کسی هست رزومه اش این موارد رو کم داره 'سلام من یکسری کلمات کلیدی هست که از کسی هست رزومه اش این موارد رو کم داره\n\n"
-                        "['frontend', 'backend', 'interfaces', 'appealing', 'seamless', 'experiences', 'users', 'visually', 'collaborate', 'create', "
-                        "'ensuring', 'work', 'solutions', 'infrastructure', 'providing', 'server', 'databases', 'creating', 'aspects', 'application']\n\n"
-                        "و من ازت میخوام یه نقشه راه به کاربر بدی که باید جیا یاد بگیره و جه کار هایی باید انجام و اگر دید کلمه ای اضافه و بی مورد هست "
-                        "در نظر نگیر و باید دقت بالایی نقشه راه بده اگر هر زبان یا کتاب خونه ایی از اون زبون رو باید یاد بگیره بگو در ضمن باید طبق استاندارد "
-                        "نقشه راه بدی و من ازت میخوام یه نقشه راه به کاربر بدی که باید جیا یاد بگیره و جه کار هایی باید انجام و اگر دید کلمه ای اضافه و بی مورد هست "
-                        "در نظر نگیر و باید دقت بالایی نقشه راه بدی اگر هر زبان یا کتاب خونه ایی از اون زبون رو باید یاد بگیره بگو در ضمن باید طبق استاندارد "
-                        "نقشه راه بدی و حتما انگلیسی باشه و چون این پرامت من با api وصل میکنم توضیحات اول و اخر رو نیاز ندارم و بهم توضیح نده فقط نقشه راه "
-                        "به زبان انگلیسی بفرست منظورم اینه که توضیحات ندی اینه که مثل این دستوراتی هستی که پاسخ به من میدی من یک نرم افزار دارم و با api به تو وصل "
-                        "شدم و میخوام به محض اینکه پرامت فرستادم نقشه راه باشه و در اول و اخر هیچی نباشه و باید بدون فرمت خاصی باشه باید فرمت txt باشه"
-                    )
-                }
-            ]
-        }
+response = client.chat.completions.create(
+    model="gpt-4.1-mini",
+    messages=[
+        {"role": "user", "content": prompt}
     ]
-}
+)
 
-response = requests.post(url, headers=headers, json=data)
-
-if response.status_code == 200:
-    result = response.json()
-    text = result['candidates'][0]['content']['parts'][0]['text']
-
-    # حذف کاراکترهای ` * -
-    for char in ['`', '*', '-']:
+# دریافت خروجی
+text = response.choices[0].message.content
+for char in ['`', '*', '-']:
         text = text.replace(char, '')
-
-    with open("output.txt", "w", encoding="utf-8") as f:
-        f.write(text)
-else:
-    print(f"Error: {response.status_code}")
-    print(response.text)
-
+# ذخیره در فایل متنی
+with open("output.txt", "w", encoding="utf-8") as f:
+    f.write(text)
