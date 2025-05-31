@@ -12,100 +12,116 @@ This project aims to analyze resumes and predict the most suitable job title bas
 
 ---
 
-## 3. Data Preprocessing
+## 3. Exploratory Data Analysis (EDA)
 
-- **Purpose:** To convert raw textual resumes into a format understandable by machine learning algorithms.
-- **Steps:**
-  - Convert all text to lowercase to avoid case sensitivity.
-  - Remove punctuation, numbers, and any irrelevant characters.
-  - Tokenize text into individual words using a specialized tokenizer to correctly separate words.
-  - Remove common stopwords (e.g., "and", "the", "is") that carry little semantic value, improving model performance.
+### Basic Information
 
----
+- Checked dataset structure, data types, and summary statistics for both datasets.
+- Assessed missing values and duplicate records to ensure data quality.
 
-## 4. Feature Extraction
+### Visualizations
 
-- We use **TF-IDF (Term Frequency-Inverse Document Frequency)** vectorization to convert text into numeric features.
-- **TF-IDF** highlights important words in resumes relative to the entire dataset by giving higher weights to words that are unique and relevant.
-- The vectorizer limits features to the top 5000 most frequent meaningful words to reduce dimensionality and noise.
+- **Job Title Distribution:** Bar plot showing the frequency of each job title in the resume dataset.
+- **Word Count Distributions:** Histograms with KDE for word counts in resumes and job descriptions, helping understand text length variability.
+- **Average Word Count per Job Title:** Horizontal bar chart illustrating average resume length by job title.
+- **Frequent Words:** Top 20 most common words in resumes visualized with a bar chart to reveal common terms and domain-specific vocabulary.
+- **Longest and Shortest Resumes:** Samples extracted to review extremes in text length and content.
 
----
-
-## 5. Label Encoding
-
-- Job titles (target variable) are categorical text labels.
-- We convert them into numeric labels using **Label Encoding**, enabling the model to process job titles as numbers internally.
+These analyses helped identify data imbalances, outliers, and key textual characteristics for better preprocessing and modeling decisions.
 
 ---
 
-## 6. Model Training
+## 4. Data Preprocessing
 
-- The model chosen is **Logistic Regression**:
-  - Suitable for multi-class classification problems like job prediction.
-  - Robust and efficient for text classification when combined with TF-IDF features.
-- The dataset is split into training and testing sets (80%-20%) to evaluate model performance fairly.
-- The model is trained on the training set with a maximum of 1000 iterations to ensure convergence.
-
----
-
-## 7. Model Evaluation
-
-- After training, predictions are made on the test set.
-- Evaluation metrics used:
-  - **Accuracy Score:** Percentage of correct predictions.
-  - **Classification Report:** Includes precision, recall, and F1-score for each job class.
-- These metrics help understand how well the model predicts job titles based on resume text.
+- **Text Cleaning:**  
+  - Lowercased all text to reduce case sensitivity.  
+  - Removed punctuation, numbers, and non-alphabetic characters via regex.  
+- **Tokenization:**  
+  - Applied the `TreebankWordTokenizer` to split text into meaningful tokens.  
+- **Stopword Removal:**  
+  - Used a predefined list of English stopwords (`sklearn`'s ENGLISH_STOP_WORDS) to remove common but uninformative words.  
+- **Rejoining Tokens:**  
+  - Tokens were joined back into cleaned strings suitable for vectorization.
 
 ---
 
-## 8. Keyword Extraction for Missing Skills
+## 5. Feature Extraction
 
-- We extract the top keywords (skills) from the job descriptions using TF-IDF again.
-- By comparing keywords from the job description to the candidate's resume tokens, we identify skills missing from the resume.
-- This helps generate a "roadmap" for skill improvement tailored to the predicted job.
+- Used **TF-IDF Vectorization** to convert cleaned resumes into numeric feature vectors, focusing on the top 5000 features for efficiency.
+- This method emphasizes words important in individual documents relative to the corpus.
 
 ---
 
-## 9. Key Variables and Their Roles
+## 6. Label Encoding
+
+- Converted categorical job titles into numeric labels using **LabelEncoder** for compatibility with machine learning algorithms.
+
+---
+
+## 7. Model Training
+
+- Selected **Logistic Regression** as the classification model for its robustness in multi-class text classification.
+- Split the data into training (80%) and testing (20%) sets with fixed random state for reproducibility.
+- Trained the model with up to 1000 iterations to ensure convergence.
+
+---
+
+## 8. Model Evaluation
+
+- Evaluated the trained model on the test set.
+- Metrics included:  
+  - **Accuracy Score:** Overall correctness percentage.  
+  - **Classification Report:** Detailed precision, recall, and F1-score per class.
+- These metrics assess the model’s ability to predict job titles accurately.
+
+---
+
+## 9. Keyword Extraction for Missing Skills
+
+- Extracted top keywords (skills) from job descriptions using TF-IDF.
+- Compared these keywords with candidate resume tokens to find missing skills.
+- Generated personalized suggestions for skill improvement aligned with predicted job roles.
+
+---
+
+## 10. Key Variables and Their Roles
 
 - **df_resume:** DataFrame containing resume data.
 - **df_jobs:** DataFrame containing job description data.
-- **clean_resume / clean_description:** Processed text columns with cleaned, tokenized, and stopword-removed content.
-- **X:** Features (cleaned resumes) used for training.
-- **y:** Labels (job titles) corresponding to resumes.
-- **vectorizer:** TF-IDF vectorizer converting text to numeric features.
-- **label_encoder:** Encodes job titles to numeric labels.
+- **clean_resume / clean_description:** Text columns after cleaning, tokenization, and stopword removal.
+- **X:** Feature matrix (cleaned resume texts).
+- **y:** Target labels (encoded job titles).
+- **vectorizer:** TF-IDF vectorizer.
+- **label_encoder:** Converts job titles to numeric labels.
 - **model:** Trained Logistic Regression classifier.
-- **stop_words:** Set of common words removed to improve text quality.
-- **tokenizer:** Tokenizer used to split text into words.
+- **stop_words:** Set of common words filtered out.
+- **tokenizer:** Tokenizer used for splitting text into tokens.
 
 ---
 
-## 10. Functions Overview
+## 11. Functions Overview
 
 - **get_top_keywords(texts, top_n=30):**  
-  Extracts the top `n` keywords from a list of texts using TF-IDF.  
-  *Purpose:* Identify most relevant words representing skills or important concepts in job descriptions or resumes.
+  Extracts the most relevant keywords from given texts based on TF-IDF scores. Useful for identifying important skills and concepts in job descriptions or resumes.
 
 - **predict_job_and_missing_skills_v2(resume_text):**  
-  Given a raw resume text:  
-  1. Cleans and tokenizes the input.  
-  2. Transforms text into TF-IDF features.  
-  3. Predicts the job title using the trained model.  
-  4. Finds corresponding job descriptions and extracts top keywords.  
-  5. Compares candidate’s resume words with job keywords to detect missing skills.  
-  *Purpose:* Provide both a predicted job and a personalized skill improvement list.
+  Given a raw resume text, this function:  
+  1. Cleans and tokenizes the text.  
+  2. Vectorizes the cleaned text with TF-IDF.  
+  3. Predicts the most suitable job title using the trained model.  
+  4. Extracts top keywords from related job descriptions.  
+  5. Identifies skills missing from the resume compared to job requirements.  
+  Returns the predicted job title and a list of suggested skills for improvement.
 
 ---
 
-## 11. Model Persistence
+## 12. Model Persistence
 
-- The entire pipeline components (model, vectorizer, label encoder, tokenizer, stop words, job data) are saved together in a single file using **joblib**.  
-- This allows reusing the trained model later without retraining, ensuring consistent predictions.
+- The trained model, vectorizer, label encoder, tokenizer, stop words, and job description data are bundled together and saved with **joblib** for easy loading and reuse without retraining.
 
 ---
 
 ## Summary
 
-This project builds a pipeline to process textual resumes, predict the most fitting job title, and provide actionable feedback on missing skills. Each step — from text cleaning to feature extraction, model training, and keyword analysis — is carefully chosen to maximize accuracy and practical usability. The modular design allows easy updates or expansions, such as adding more data or switching classification algorithms.
+This project provides an end-to-end pipeline for resume analysis: from cleaning raw text data and exploring dataset characteristics, through training a classification model, to suggesting personalized skill gaps for career development. The addition of detailed EDA ensures data quality and better insights, improving model reliability and practical value.
 
